@@ -1,4 +1,4 @@
-<!doctype html>
+i<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -101,27 +101,61 @@ document.querySelectorAll("[data-rating]").forEach(b=>b.addEventListener("click"
 }));
 const detail=document.getElementById("detail");
 detail.addEventListener("input",()=>document.getElementById("count").textContent=detail.value.length+" / 240");
+
 function buildDraft(){
- const chosen=[...document.querySelectorAll("#features input:checked")].map(x=>x.value);
- if(!rating && !chosen.length && !detail.value.trim()){
-  alert("Choose a rating or one or more details from your stay first.");return false;
- }
- const ratingText={1:"My overall experience was poor.",2:"My overall experience was fair.",3:"My overall experience was okay.",4:"I had a good overall experience.",5:"I had a great overall experience."};
- const lines=[];
- if(rating) lines.push(ratingText[rating]);
- if(chosen.length){
-  if(rating>=4) lines.push("I especially appreciated "+chosen.map(x=>phrases[x]).join(", ").replace(/, ([^,]*)$/," and $1")+".");
-  else if(rating===3) lines.push("Some parts of my stay that stood out were "+chosen.map(x=>phrases[x]).join(", ").replace(/, ([^,]*)$/," and $1")+".");
-  else lines.push("I would like to mention "+chosen.map(x=>phrases[x]).join(", ").replace(/, ([^,]*)$/," and $1")+".");
- }
- if(detail.value.trim()) lines.push(detail.value.trim());
- document.getElementById("draft").value=lines.join(" ");
- document.getElementById("editorwrap").classList.remove("hidden");
- updateWords();
- document.getElementById("status").textContent="Draft created. Read it through and edit anything that doesn't sound like you.";
- document.getElementById("editorwrap").scrollIntoView({behavior:"smooth",block:"start"});
- return true;
+  const chosen=[...document.querySelectorAll("#features input:checked")].map(x=>x.value);
+
+  if(!rating && !chosen.length && !detail.value.trim()){
+    alert("Choose a rating or one or more details from your stay first.");
+    return false;
+  }
+
+  const ratingText={
+    1:["My overall experience was poor.","Unfortunately, my stay was disappointing.","My experience did not meet my expectations."],
+    2:["My overall experience was fair.","My stay was okay, but there is room for improvement.","Some parts of my stay could have been better."],
+    3:["My overall experience was okay.","Overall, my stay was fairly average.","My experience was decent overall."],
+    4:["I had a good overall experience.","Overall, I enjoyed my stay here.","I was happy with my stay overall."],
+    5:["I had a great overall experience.","I really enjoyed my stay here.","Overall, I had a lovely stay."]
+  };
+
+  const features={
+    cleanliness:"the cleanliness",
+    host:"the helpful host and staff",
+    location:"the convenient location",
+    comfort:"the comfort of the stay",
+    value:"the value for money",
+    facilities:"the facilities",
+    wifi:"the Wi-Fi",
+    atmosphere:"the overall atmosphere"
+  };
+
+  const pick=list=>list[Math.floor(Math.random()*list.length)];
+  const lines=[];
+
+  if(rating) lines.push(pick(ratingText[rating]));
+
+  if(chosen.length){
+    const items=chosen.map(x=>features[x]);
+    const list=items.length===1?items[0]:items.slice(0,-1).join(", ")+" and "+items[items.length-1];
+    const openers=rating>=4
+      ?["What I appreciated most was","I especially liked","I particularly enjoyed"]
+      :rating===3
+      ?["Some things that stood out were","During my stay, I noticed"]
+      :["I'd like to mention","One thing worth mentioning is"];
+
+    lines.push(pick(openers)+" "+list+".");
+  }
+
+  if(detail.value.trim()) lines.push(detail.value.trim());
+
+  document.getElementById("draft").value=lines.join(" ");
+  document.getElementById("editorwrap").classList.remove("hidden");
+  updateWords();
+  document.getElementById("status").textContent="Draft created. Please check and edit it to reflect your actual experience.";
+  document.getElementById("editorwrap").scrollIntoView({behavior:"smooth",block:"start"});
+  return true;
 }
+
 function updateWords(){const t=document.getElementById("draft").value.trim();document.getElementById("wordcount").textContent=(t?t.split(/\s+/).length:0)+" words";}
 document.getElementById("generate").addEventListener("click",buildDraft);
 document.getElementById("regenerate").addEventListener("click",buildDraft);
